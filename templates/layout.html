@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>{% block title %}Social Analytics Pro{% endblock %}</title>
+    <style>
+        /* Встановлюємо Inter як основний шрифт */
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <!-- Підключення Chart.js для графіків -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block head_scripts %}{% endblock %}
+</head>
+<!-- 
+    *** НОВИЙ ДИЗАЙН: Neumorphism (Dark Mode) ***
+    - bg-gray-900: Глибокий темний фон
+    - text-gray-300: М'який колір тексту (для контрасту)
+-->
+<body class="bg-gray-900 text-gray-300 min-h-screen flex flex-col antialiased">
+    <!-- 
+        НАВІГАЦІЯ: 
+        - bg-gray-800: "Видавлена" картка, трохи світліша за фон
+        - shadow-lg: Додає м'яку тінь
+        - border-b border-gray-700: Тонка лінія для чіткості
+    -->
+    <nav class="bg-gray-800 shadow-lg sticky top-0 z-50 border-b border-gray-700">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 sm:h-16">
+                
+                <!-- Логотип -->
+                <div class="flex-shrink-0 flex items-center justify-center">
+                    <a href="{{ url_for('index') }}" class="text-xl sm:text-2xl font-bold text-white">
+                        📊 Social Analytics Pro
+                    </a>
+                </div>
+                
+                <!-- Кнопки -->
+                <div class="flex items-center justify-center space-x-2 sm:space-x-4 mt-3 sm:mt-0">
+                    {% if current_user.is_authenticated %}
+                        <!-- Користувач увійшов -->
+                        
+                        {% if current_user.is_pro %}
+                            <a href="{{ url_for('dashboard') }}" class="text-xs sm:text-sm font-medium text-gray-300 hover:text-white px-2 py-1">
+                                Дашборд
+                            </a>
+                            <a href="{{ url_for('compare_page') }}" class="text-xs sm:text-sm font-medium text-gray-300 hover:text-white px-2 py-1">
+                                Порівняння
+                            </a>
+                            <!-- Pro "пігулка" -->
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-semibold bg-green-800/50 text-green-300 border border-green-700 shadow-sm">
+                                PRO
+                            </span>
+                        {% else %}
+                            <!-- "Отримати Pro" - акцентна кнопка -->
+                            <a href="{{ url_for('upgrade_page') }}" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/30 transition duration-200">
+                                🚀 Отримати Pro
+                            </a>
+                        {% endif %}
+                        
+                        <span class="text-sm text-gray-500 hidden md:block" title="{{ current_user.email }}">{{ current_user.email.split('@')[0] }}</span>
+                        <!-- "Вийти" - м'яка кнопка -->
+                        <a href="{{ url_for('logout') }}" class="text-xs sm:text-sm font-medium text-gray-300 hover:text-white px-2 py-1 bg-gray-700/50 hover:bg-gray-700 rounded-md">
+                            Вийти
+                        </a>
+
+                    {% else %}
+                        <!-- Анонімний користувач -->
+                        <a href="{{ url_for('login') }}" class="text-sm font-medium text-gray-300 hover:text-white px-3 py-2">
+                            Увійти
+                        </a>
+                        <a href="{{ url_for('register') }}" class="ml-4 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/30 transition duration-200">
+                            Реєстрація
+                        </a>
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основний контент -->
+    <main class="flex-grow">
+        <div class="max-w-4xl mx-auto p-4 mt-4">
+            
+            <!-- Flash-повідомлення (редизайн для темної теми) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="space-y-3 mb-4">
+                    {% for category, message in messages %}
+                        {% set color = 'blue' if category == 'info' else ('green' if category == 'success' else ('red' if category == 'danger' else 'yellow')) %}
+                        <div class="bg-{{ color }}-900/50 border border-{{ color }}-700 text-{{ color }}-200 px-4 py-3 rounded-lg text-sm" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}
+            <!-- Вміст сторінки буде вставлено тут -->
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="text-center p-4 text-gray-500 text-sm mt-auto">
+        © {{ current_year }} Social Analytics Pro.
+    </footer>
+</body>
+</html>

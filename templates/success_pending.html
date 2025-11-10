@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block title %}Очікуємо Підтвердження - Social Pro{% endblock %}
+
+{% block content %}
+<!-- Оновлено: p-6 sm:p-8 -->
+<div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg w-full text-center">
+    
+    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    </div>
+
+    <!-- Оновлено: text-2xl sm:text-3xl -->
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+        Ваш платіж обробляється
+    </h1>
+    <p class="text-base sm:text-lg text-gray-600 mb-6">
+        Ми отримали ваш платіж і очікуємо на фінальне підтвердження від Fondy.
+    </p>
+    <p class="text-gray-500 mb-8">
+        Зазвичай це займає 10-30 секунд. Ваш Pro-статус активується автоматично.
+    </p>
+
+    <a 
+        href="{{ url_for('index') }}"
+        class="w-full sm:w-auto inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition duration-200"
+    >
+        Повернутись на головну
+    </a>
+</div>
+{% endblock %}

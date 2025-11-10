@@ -1,0 +1,17 @@
+Flask
+python-dotenv
+Telethon
+# instagrapi - ВИДАЛЕНО
+asyncio
+cloudipsp
+reportlab
+gunicorn
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Werkzeug
+email-validator
+Flask-Mail
+
+# --- НОВА БІБЛІОТЕКА ДЛЯ БОТА ---
+aiogram

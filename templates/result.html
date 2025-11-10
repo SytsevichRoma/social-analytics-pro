@@ -1,0 +1,213 @@
+{% extends 'layout.html' %}
+
+{% block title %}Результати Аналізу - Social Pro{% endblock %}
+
+{% block content %}
+<div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-700 w-full">
+    
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
+        <h1 class="text-xl sm:text-2xl font-bold text-white text-center sm:text-left">
+            Результати аналізу
+        </h1>
+        
+        <!-- Кнопки дій для Pro -->
+        {% if current_user.is_authenticated and current_user.is_pro and (not data.is_private) %}
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                
+                <form action="{{ url_for('track_account') }}" method="POST" class="w-full sm:w-auto">
+                    <input type="hidden" name="platform" value="{{ data.platform }}">
+                    <input type="hidden" name="username" value="{{ data.username }}">
+                    <input type="hidden" name="account_name" value="{{ data.name }}">
+                    <input type="hidden" name="url" value="{{ url }}">
+                    <button type="submit"
+                       class="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-lg shadow-green-600/30 text-white bg-green-600 hover:bg-green-700 transition duration-200">
+                       <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Відстежувати
+                    </button>
+                </form>
+                
+                <a href="{{ url_for('export_csv') }}"
+                   class="inline-flex items-center justify-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-lg shadow-inner shadow-black/50 text-gray-300 bg-gray-900 hover:bg-gray-700 transition duration-200 w-full sm:w-auto">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Експорт в CSV
+                </a>
+                <a href="{{ url_for('download_pdf_report') }}"
+                   class="inline-flex items-center justify-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-lg shadow-inner shadow-black/50 text-gray-300 bg-gray-900 hover:bg-gray-700 transition duration-200 w-full sm:w-auto">
+                   <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Завантажити PDF
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <p class="text-gray-400 mb-6 break-words text-sm text-center sm:text-left">
+        Для: <a href="{{ url }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">{{ url }}</a>
+    </p>
+
+    <!-- Картка Базових Метрик -->
+    <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-inner shadow-black/60">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-4">
+            <h3 class="text-base sm:text-lg font-semibold text-white">{{ data.name or data.username }}</h3>
+            <span class="text-xs sm:text-sm font-medium bg-blue-800/50 text-blue-300 border border-blue-700 py-0.5 px-2 rounded-full">
+                {{ data.type }}
+            </span>
+        </div>
+        
+        <div class="p-4 sm:p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                <span class="text-gray-400 text-sm sm:text-base">Підписники:</span>
+                <span class="font-bold text-lg sm:text-xl text-white">{{ "{:,.0f}".format(data.subscribers).replace(',', ' ') }}</span>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                <span class="text-gray-400 text-sm sm:text-base">Сер. перегляди (20 постів):</span>
+                <span class="font-bold text-lg sm:text-xl text-white">{{ "{:,.0f}".format(data.avg_views).replace(',', ' ') }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Кінець Базових Метрик -->
+
+    <!-- Pro Аналітика -->
+    {% if current_user.is_authenticated and current_user.is_pro and (not data.is_private) %}
+    <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden mt-6 shadow-inner shadow-black/60">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 border-b border-gray-700">
+            <h3 class="text-base sm:text-lg font-semibold text-blue-300">🚀 Pro Аналітика (Якість Аудиторії)</h3>
+        </div>
+        
+        <div class="p-4 sm:p-6 space-y-4">
+            
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                <span class="text-gray-400 text-sm sm:text-base">Engagement Rate (ER):</span>
+                <span class="font-bold text-lg sm:text-xl text-blue-300" title="Сер. перегляди / Підписники * 100%">
+                    {{ "%.2f"|format(data.er) }}%
+                </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                <span class="text-gray-400 text-sm sm:text-base">
+                    Коефіцієнт Реакцій (RR):
+                    <span class="text-xs text-gray-500" title="Показує % 'живої' аудиторії">(?)</span>
+                </span>
+                <span class="font-bold text-lg sm:text-xl text-blue-300" title="Сер. Реакції / Сер. Перегляди * 100%">
+                    {{ "%.2f"|format(data.reaction_rate) }}%
+                </span>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                <span class="text-gray-400 text-sm sm:text-base">Частота постингу:</span>
+                <span class="font-bold text-lg sm:text-xl text-white">
+                    ~ {{ "%.1f"|format(data.posts_per_day) }} 
+                    <span class="text-sm font-normal">пост/день</span>
+                </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                <span class="text-gray-400 text-sm sm:text-base">
+                    Розкид переглядів (Min/Max):
+                    <!-- *** ОНОВЛЕНО 'title' *** -->
+                    <span class="text-xs text-gray-500" title="Розкид серед постів, старших за 24 години">(?)</span>
+                </span>
+                <span class="font-bold text-lg sm:text-xl text-white">
+                    {{ "{:,.0f}".format(data.min_views) }} / {{ "{:,.0f}".format(data.max_views) }}
+                </span>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Top/Flop Пости -->
+    <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden mt-6 shadow-inner shadow-black/60">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 border-b border-gray-700">
+            <h3 class="text-base sm:text-lg font-semibold text-white">📈 Аналіз Контенту</h3>
+        </div>
+        <div class="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Top Пости -->
+            <div>
+                <h4 class="font-semibold text-green-400 mb-3">Top 3 Пости</h4>
+                <ul class="space-y-3">
+                    {% for post in data.get('top_posts', []) %}
+                    <li class="text-sm border-b border-gray-800 pb-2">
+                        <a href="{{ post.link }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline break-words">
+                            {{ post.text }}
+                        </a>
+                        <div class="text-gray-400 mt-1">
+                            <span class="font-medium text-green-300">{{ "{:,.0f}".format(post.views) }}</span> переглядів
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="text-sm text-gray-500">Немає даних.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <!-- Flop Пости -->
+            <div>
+                <h4 class="font-semibold text-red-400 mb-3">Flop 3 Пости</h4>
+                <ul class="space-y-3">
+                    {% for post in data.get('flop_posts', []) %}
+                    <li class="text-sm border-b border-gray-800 pb-2">
+                        <a href="{{ post.link }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline break-words">
+                            {{ post.text }}
+                        </a>
+                        <div class="text-gray-400 mt-1">
+                            <span class="font-medium text-red-300">{{ "{:,.0f}".format(post.views) }}</span> переглядів
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="text-sm text-gray-500">Немає даних.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- *** НОВИЙ БЛОК: PRO ПОРАДИ (INSIGHTS) *** -->
+    {% if data.insights %}
+    <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden mt-6 shadow-inner shadow-black/60">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 border-b border-gray-700">
+            <h3 class="text-base sm:text-lg font-semibold text-white">💡 Pro Поради & "Red Flags"</h3>
+        </div>
+        <div class="p-4 sm:p-6">
+            <ul class="space-y-3">
+                {% for insight in data.insights %}
+                {% set color = 'green' if insight.type == 'positive' else ('red' if insight.type == 'warning' else 'yellow') %}
+                <li class="flex items-start text-sm">
+                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-{{ color }}-500/20 text-{{ color }}-300 flex items-center justify-center mr-3 mt-0.5">
+                        {% if insight.type == 'positive' %}
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        {% elif insight.type == 'warning' %}
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM10 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        {% else %}
+                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                        {% endif %}
+                    </span>
+                    <span class="text-gray-300">{{ insight.text }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %} 
+    
+    <!-- Апселл (для зареєстрованих, але не Pro) -->
+    {% if current_user.is_authenticated and (not current_user.is_pro) and (not data.is_private) %}
+    <div class="mt-6 p-4 bg-blue-900/50 border border-blue-700 rounded-lg text-center shadow-lg">
+        <h4 class="font-semibold text-blue-200">Хочете бачити повну Pro-аналітику та поради?</h4>
+        <p class="text-blue-300 text-sm mt-1 mb-3">Оновіться до Pro, щоб розблокувати "Red Flags", аналіз контенту та поради щодо якості аудиторії.</p>
+        <a href="{{ url_for('upgrade_page') }}" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/30 transition duration-200">
+            🚀 Отримати Pro
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка "Назад" -->
+    <div class="mt-8 text-center">
+        <a 
+            href="{{ url_for('index') }}"
+            class="w-full sm:w-auto inline-block bg-gray-700 text-gray-200 font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-600 transition duration-200"
+        >
+            Аналізувати інший
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'layout.html' %}
+
+{% block title %}Аналізатор Telegram - Social Pro{% endblock %}
+
+{% block content %}
+<!-- 
+    "Видавлена" картка: 
+    - bg-gray-800 (світліша за фон)
+    - shadow-xl (глибока тінь)
+    - border border-gray-700 (тонка рамка для чіткості)
+-->
+<div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-700">
+    
+    <h1 class="text-2xl sm:text-3xl font-bold text-center text-white mb-2">
+        Аналізатор Telegram-Каналів
+    </h1>
+    <p class="text-center text-gray-400 mb-6 text-sm sm:text-base">
+        Вставте посилання на Telegram-канал (t.me/...) для миттєвого аналізу.
+    </p>
+
+    <!-- Відображення помилок -->
+    {% if error %}
+        <div class="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative mb-6" role="alert">
+            <strong class="font-semibold">Помилка!</strong>
+            <span class="block sm:inline">{{ error }}</span>
+        </div>
+    {% endif %}
+
+    <!-- Форма вводу -->
+    <form action="{{ url_for('analyze') }}" method="POST" class="space-y-4">
+        <div>
+            <label for="social_url" class="block text-sm font-medium text-gray-300 mb-1">Посилання на Telegram-канал</label>
+            <!-- 
+                "Втиснуте" поле вводу:
+                - bg-gray-900 (той самий колір, що й фон)
+                - shadow-inner shadow-black/60 (внутрішня тінь)
+                - border border-gray-700 (рамка)
+            -->
+            <input 
+                type="url" 
+                name="social_url" 
+                id="social_url"
+                value="{{ last_url or '' }}"
+                class="w-full px-4 py-3 bg-gray-900 text-white border border-gray-700 rounded-lg shadow-inner shadow-black/60 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                placeholder="https://t.me/durov"
+                required
+            >
+        </div>
+        
+        <!-- Акцентна кнопка -->
+        <button 
+            type="submit"
+            class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-blue-500/40 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 ease-in-out"
+        >
+            Аналізувати
+        </button>
+    </form>
+
+    <!-- Інфо про ліміти -->
+    {% if not current_user.is_pro %}
+    <p class="text-center text-gray-500 text-sm mt-6">
+        {% set r = remaining if remaining > 0 else 0 %}
+        Вам доступно <span class="font-medium text-gray-300">{{ r }}</span> безкоштовних аналізів сьогодні.
+        
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('upgrade_page') }}" class="text-blue-400 hover:underline font-medium">Отримайте Pro</a> 
+            для безлімітних запитів та PDF-звітів.
+        {% else %}
+            <br class="sm:hidden">
+            <a href="{{ url_for('login') }}" class="text-blue-400 hover:underline font-medium">Увійдіть</a> або 
+            <a href="{{ url_for('register') }}" class="text-blue-400 hover:underline font-medium">зареєструйтеся</a>.
+        {% endif %}
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

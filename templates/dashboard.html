@@ -1,0 +1,100 @@
+{% extends 'layout.html' %}
+
+{% block title %}Ваш Дашборд - Social Pro{% endblock %}
+
+{% block content %}
+<!-- "Видавлена" картка -->
+<div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-700 w-full">
+    
+    <h1 class="text-2xl sm:text-3xl font-bold text-white mb-6">
+        Ваш Дашборд
+    </h1>
+
+    {% if accounts %}
+        <p class="text-gray-400 mb-6 text-sm sm:text-base">
+            Ви відстежуєте <span class="font-bold text-white">{{ accounts|length }}</span> акаунт(ів).
+        </p>
+        
+        <!-- Список відстежуваних акаунтів -->
+        <div class="space-y-4">
+            {% for account in accounts %}
+                {% set latest_data = account.get_latest_data() %}
+                <!-- "Втиснута" картка акаунта -->
+                <div class="bg-gray-900 border border-gray-700 rounded-lg p-4 shadow-inner shadow-black/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <!-- Інфо про акаунт -->
+                    <div class="flex-grow text-center sm:text-left">
+                        <a href="{{ url_for('dashboard_view_account', account_id=account.id) }}" class="text-lg font-semibold text-blue-400 hover:underline">
+                            {{ account.account_name }} 
+                            <span class="text-gray-400 font-normal">(@{{ account.username }})</span>
+                        </a>
+                        <div class="flex items-center justify-center sm:justify-start flex-wrap gap-x-4 gap-y-2 mt-2">
+                            <span class="text-sm font-medium bg-blue-800/50 text-blue-300 border border-blue-700 py-0.5 px-2 rounded-full">
+                                {{ account.platform|title }}
+                            </span>
+                            
+                            {% if latest_data %}
+                                <span class="text-sm text-gray-300">
+                                    <strong>Підписники:</strong> 
+                                    {{ "{:,.0f}".format(latest_data.subscribers or latest_data.followers).replace(',', ' ') }}
+                                </span>
+                                <span class="text-sm text-gray-300">
+                                    <strong>ER:</strong> {{ "%.2f"|format(latest_data.er) }}%
+                                </span>
+                                <span class="text-xs text-gray-500" title="{{ account.last_updated.strftime('%Y-%m-%d %H:%M') }} UTC">
+                                    Оновлено: 
+                                    {% set minutes_ago = ((datetime.utcnow() - account.last_updated).total_seconds() / 60) | int %}
+                                    {% if minutes_ago < 2 %} щойно
+                                    {% elif minutes_ago < 60 %} {{ minutes_ago }} хв. тому
+                                    {% elif minutes_ago < 1440 %} {{ (minutes_ago / 60) | int }} год. тому
+                                    {% else %} {{ (minutes_ago / 1440) | int }} д. тому
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="text-sm text-yellow-400">Очікуємо на перший збір даних...</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки дій -->
+                    <div class="flex-shrink-0 flex gap-2">
+                        <!-- Кнопка "Оновити" (Синя) -->
+                        <form action="{{ url_for('refresh_account', account_id=account.id) }}" method="POST">
+                            <button type="submit"
+                               class="inline-flex items-center p-2 border border-transparent text-sm font-medium rounded-lg shadow-lg shadow-blue-500/30 text-white bg-blue-600 hover:bg-blue-700 transition duration-200"
+                               title="Оновити дані зараз">
+                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0015.357 2m0 0H15"></path></svg>
+                            </button>
+                        </form>
+                        
+                        <!-- Кнопка "Видалити" (Червона) -->
+                        <form action="{{ url_for('untrack_account', account_id=account.id) }}" method="POST" onsubmit="return confirm('Ви впевнені, що хочете видалити цей акаунт з Дашборда?');">
+                            <button type="submit"
+                               class="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-lg shadow-lg shadow-red-500/30 text-white bg-red-600 hover:bg-red-700 transition duration-200">
+                                Видалити
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <!-- "Порожній" стан -->
+        <div class="text-center text-gray-500 py-12">
+            <svg class="w-16 h-16 mx-auto text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+            <h3 class="mt-2 text-xl font-semibold text-white">Ваш Дашборд порожній</h3>
+            <p class="mt-1 text-base text-gray-400">
+                Щоб почати відстеження, зробіть аналіз акаунта і натисніть кнопку "Відстежувати".
+            </p>
+            <div class="mt-6">
+                <a 
+                    href="{{ url_for('index') }}"
+                    class="w-full sm:w-auto inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-blue-500/40 hover:bg-blue-700 transition duration-200"
+                >
+                    Перейти до Аналізу
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
