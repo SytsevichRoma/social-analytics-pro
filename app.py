@@ -17,7 +17,6 @@ from services.billing import create_fondy_checkout_url
 from services.pdf_generator import generate_pdf_report
 from services.export_service import generate_csv
 from services.email_service import init_app_mail, send_password_reset_email
-# --- НОВИЙ ІМПОРТ ---
 from services.insights_generator import generate_pro_insights
 from models import db, User, TrackedAccount, AnalyticsHistory, init_app_db
 from forms import LoginForm, RegistrationForm, CompareForm, RequestPasswordResetForm, ResetPasswordForm
@@ -27,10 +26,21 @@ from sqlalchemy.exc import IntegrityError
 app = Flask(__name__)
 app.secret_key = os.environ.get('APP_SECRET_KEY', os.urandom(24))
 
-# --- НАЛАШТУВАННЯ БАЗИ ДАНИХ ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
+# --- *** ВИПРАВЛЕННЯ: ПРАВИЛЬНЕ ПІДКЛЮЧЕННЯ ДО БАЗИ *** ---
+# Спроба отримати URL бази з середовища (на Render він буде, локально - ні)
+database_url = os.environ.get('DATABASE_URL')
+
+# Якщо ми на Render, і URL починається з 'postgres://', 
+# виправляємо його на 'postgresql://' (вимога нової бібліотеки)
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# Використовуємо знайдену базу АБО створюємо локальний файл sqlite, якщо бази немає
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///project.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 init_app_db(app)
+# --- *** КІНЕЦЬ ВИПРАВЛЕННЯ *** ---
+
 
 # --- НАЛАШТУВАННЯ FLASK-MAIL ---
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
@@ -195,7 +205,7 @@ def analyze():
 
     try:
         if platform == 'telegram':
-            data = get_telegram_data(url, is_pro_user=True) 
+            data = get_telegram_data(url, is_pro_user=is_pro)
             if not data: error = "Не вдалося отримати дані з Telegram."
         else:
             error = "Непідтримуване посилання. Введіть URL Telegram-каналу (t.me/...)."
@@ -217,11 +227,9 @@ def analyze():
             session['analysis_count'] = (session.get('analysis_count', 0) + 1)
             session['last_analysis_date'] = str(date.today())
 
-    # --- *** НОВИЙ БЛОК: ГЕНЕРАЦІЯ ПОРАД *** ---
     if is_pro and data:
         insights = generate_pro_insights(data)
-        data['insights'] = insights # Додаємо поради прямо у словник
-    # --- *** КІНЕЦЬ БЛОКУ *** ---
+        data['insights'] = insights
 
     session['analysis_result'] = data
     session['analysis_url'] = url
@@ -301,11 +309,9 @@ def compare_analyze():
                 flash('Не вдалося отримати дані для одного з акаунтів.', 'danger')
                 return redirect(url_for('compare_page'))
             
-            # --- НОВЕ: ГЕНЕРУЄМО ПОРАДИ ДЛЯ ПОРІВНЯННЯ ---
             if is_pro:
                 data1['insights'] = generate_pro_insights(data1)
                 data2['insights'] = generate_pro_insights(data2)
-            # ---------------------------------------------
 
             session['compare_data1'] = data1
             session['compare_data2'] = data2
@@ -356,10 +362,8 @@ def download_pdf_report():
             flash('Не вдалося отримати свіжі дані для PDF-звіту.', 'danger')
             return redirect(url_for('show_result'))
         
-        # --- НОВЕ: ГЕНЕРУЄМО ПОРАДИ ДЛЯ PDF ---
         if current_user.is_pro:
             data['insights'] = generate_pro_insights(data)
-        # ------------------------------------
 
     except Exception as e:
         print(f"Помилка під час 'свіжого' аналізу для PDF: {e}")
@@ -409,6 +413,7 @@ def dashboard():
     if not current_user.is_pro:
         flash('Дашборд доступний лише для Pro-користувачів.', 'warning')
         return redirect(url_for('upgrade_page'))
+
     tracked_accounts = sorted(current_user.tracked_accounts, key=lambda x: x.date_added, reverse=True)
     return render_template('dashboard.html', 
                            accounts=tracked_accounts, 
@@ -486,8 +491,7 @@ def track_account():
         
         data = session.get('last_analysis')
         if data and data.get('username') == username:
-            # --- НОВЕ: ГЕНЕРУЄМО ПОРАДИ ПЕРЕД ЗБЕРЕЖЕННЯМ ---
-            if 'insights' not in data: # Переконуємось, що вони є
+            if 'insights' not in data:
                  data['insights'] = generate_pro_insights(data)
 
             first_history_entry = AnalyticsHistory(
