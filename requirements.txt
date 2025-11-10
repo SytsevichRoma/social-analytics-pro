@@ -15,3 +15,5 @@ Flask-Mail
 
 # --- НОВА БІБЛІОТЕКА ДЛЯ БОТА ---
 aiogram
+
+gunicorn
