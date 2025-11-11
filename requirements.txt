@@ -1,7 +1,6 @@
 Flask
 python-dotenv
 Telethon
-# instagrapi - ВИДАЛЕНО
 asyncio
 cloudipsp
 reportlab
@@ -12,8 +11,5 @@ Flask-WTF
 Werkzeug
 email-validator
 Flask-Mail
-
-# --- НОВА БІБЛІОТЕКА ДЛЯ БОТА ---
 aiogram
-
-gunicorn
+psycopg2
